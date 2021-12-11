@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//Ddiv XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/Ddiv/xhtml1-strict.ddiv">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+  <head>
+    <title>CS 194 FINAL PROJECT</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link href="style.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <header>
+      <h1>CS 194-26: Intro to Computer Vision and Computational Photography, Fall 2021</h1>
+      <h1>Final Projects: Poor Man's Augmented Reality and Light Field Camera</h1>
+      <h2>By Xinyun Cao</h2>
+
+      <div class="table-of-contents">
+        <ul>
+          <li>
+            <a href="#proj1">Project 1: Poor Man's Augmented Reality</a>
+            <ul>
+              <li><a href="#p1_part1">1) Set up</a></li>
+              <li><a href="#p1_part2">2) Keypoints with known 3D world coordinates</a></li>
+              <li><a href="#p1_part3">3) Propogating Keypoints to other Images in the Video</a></li>
+              <li><a href="#p1_part4">4) Calibrating the Camera</a></li>
+              <li><a href="#p1_part5">5) Projecting a cube in the Scene</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#proj2">Part 2: Light Field Camera</a>
+            <ul>
+              <li><a href="#p2_part1">1) Depth Refocusing</a></li>
+              <li><a href="#p2_part2">2) Aperture Adjustment</a></li>
+              <li><a href="#p2_part3">3) Bells & Whistles</a></li>
+              <li><a href="#p2_part4">4) Summary and What I Learned</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <!-- end table of contents -->
+    </header>
+    <!-- END PAGE HEADER -->
+
+    <br class="spacer" />
+
+    <!-- START PAGE CONTENT -->
+    <div class="content">
+      <div class="part" id="overview">
+        <h2>Overview</h2>
+        <!-- Give a high-level overview of what you implemented in this project. Think about what you've built as a whole.
+              Share your thoughts on what interesting things you've learned from completing the project. -->
+        <p>This is my Final Project for CS 194-26: Intro to Computer Vision and Computational Photography. It is consist of two separate parts, "Poor Man's Augmented Reality" and "Light Field Camera".</p>
+      </div>
+      <!-- END OVERVIEW -->
+
+      <!--Start Project 1-->
+      <div class="part" id="proj1">
+        <h2>Project 1: Poor Man's Augmented Reality</h2>
+        <p>In this project, I implemented a simplified solution for Augmented Reality. I recorded a box with grid pattern on, and used this program to calculate the camera calibration for each frame, and projected a block into the scene.</p>
+
+        <div class="part" id="p1_part1">
+	        <h3>1) Set up</h3>
+	        <p>I printed out paper with 1-inch grid on, and sticked them to a box. The video looks as follows:</p>
+	        <iframe width="560" height="315" src="https://www.youtube.com/embed/4Z6YTL9n4Hk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    	</div>
+
+    	<div class="part" id="p2_part2">
+	        <h4>2) Keypoints with known 3D world coordinates</h4>
+	        <p>I took the first frame, and manually added keypoints of the points on the grib using plt.ginput. I then made a list to store the 3D positions of the points, with bottom most point as (0, 0, 0), the axis going right as X axis, the axis going up as Y axis, and the axis going left as the Z Axis.</p>
+	        <p>The result of the keypoint marking looks like:</p>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/frame0_keypoints.jpg" alt="frame0_keypoints" style="width:100%">
+	          </div>
+	        </div>
+    	</div>
+
+    	<div class="part" id="p2_part3">
+	        <h4>3) Propogating Keypoints to other Images in the Video</h4>
+	        <p>In this part, I used corner detection and a hacky way to do feature matching to propogate keypoints to other frames. Since my grib is not very clear, I realized the out-of-package tracker doesn't work too well on my video. However, since the movements in this video is very small, we can use the corner detection method. We can just try to find the corner detected in the next image frame that are closest to the marked coordinates in the previous image.</p>
+	        <p>The result is not perfect, we lost track of quite some points through out the video, but since I used a lot of tracking points, it turned out mostly fine.</p>
+	        <iframe width="560" height="315" src="https://www.youtube.com/embed/9GAMDLnlB_0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+	    </div>
+
+	    <div class="part" id="p2_part4">
+	        <h4>4) Calibrating the Camera</h4>
+	        <p>After getting the keypoint position in image space for each frame, combined with their 3D world world space that doesn't change, we can get the get the Camera Calibration matrix. Specifically, the matrix is the 3 x 4 matrix as shown below. Note that m34 is always 1. The function on top can be simplified as the function on the bottom, which we can solve using least square function in numpy.</p>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/homogeneous.png" alt="homogeneous" style="width:100%">
+	          </div>
+	        </div>
+    	</div>
+
+    	<div class="part" id="p2_part5">
+	        <h4>5) Projecting a cube in the Scene</h4>
+	        <p>Last step, I made a list with the 3D world coordinates of the cube we want to render. We used the matrix calculated in the previous step to get the 2D coordinates of those points in the image space. We do that for each frame. We use the draw function to draw the cube onto the video. The result looks like:</p>
+	        <iframe width="560" height="315" src="https://www.youtube.com/embed/A0ebv1_2qb8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>
+      <!--End Project 1-->
+
+      <!--Start Project 2-->
+      <div class="part" id="proj2">
+        <h2>Project 2: Light Field Camera</h2>
+        <p>In this part, I wrote a program to utilize dataset obtained from a light field camera to focus on different part of the image and change the aperture.</p>
+
+        <div class="part" id="p2_part1">
+	        <h4>1) Depth Refocusing</h4>
+	        <p>To enable Depth Refocusing, we take in a dataset of a scene. In this project, we are going to use the "chess" scene. The dataset was captured on a grid of 17 * 17 positions. So it has 289 images.</p>
+	        <p>The idea behind refocusing is that without any shifting, the object at the back is going to shift less, because it's position on the image is not too affected by where on the grid we are observing from. But object nearer to the camera will move more. In that sense, if we want to focus at the back, we just integrate all images together, and if we want to focus on a nearer point, we will need to shift the images correspondingly.</p>
+	        <p>To shift the images correctly, I always starts with the first image and I don't shift it, then, I select a shift value <code>shift</code>. I will move the second image <code>shift</code> amount of pixels horizontally, the third image 2 * <code>shift</code> amount, ..., until we come back to the 18th image, which is just one above the first image, we will add a vertical shift in addition to the corresponding horizontal shift based on where on the grid is horizontally. After we do all the shift, we average them all the get the results. The results are shown below:</p>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/focus_0_0.jpg" alt="focus_0_0" style="width:100%">
+	            <figcaption>focus shift = 0, focused at the very back.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus_1_-1.jpg" alt="focus_1_-1" style="width:100%">
+	            <figcaption>focus shift = 1, focused in the middle of the chess board.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus_2_-2.jpg" alt="focus_2_-2" style="width:100%">
+	            <figcaption>focus shift = 2, focused more in the front.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus_3_-3.jpg" alt="focus_3_-3" style="width:100%">
+	            <figcaption>focus shift = 3, focused very in the front, almost fell off chess board.</figcaption>
+	          </div>
+	        </div>
+	    </div>
+
+	    <div class="part" id="p2_part2">
+	        <h4>2) Aperture Adjustment</h4>
+	        <p>Aperture adjustment is mostly just choosing a subset of the origin 17 * 17 images to combine.</p>
+	        <p>First, If we apply no shift, aka focus at the back, and we use subgrid 0-17, 2-15, 4-13, 6-11, and 8-9 subgrid (range front include, back doesn't include), the combined result will look like this:</p>
+
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/focus0_subgrid0-17.jpg" alt="focus0_subgrid0-17" style="width:100%">
+	            <figcaption>focus at the back, subgrid 0-17, largest aperture.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus0_subgrid2-15.jpg" alt="focus0_subgrid2-15" style="width:100%">
+	            <figcaption>subgrid 2-15, smaller aperture.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus0_subgrid4-13.jpg" alt="focus0_subgrid4-13" style="width:100%">
+	            <figcaption>subgrid 2-15, even smaller aperture.</figcaption>
+	          </div>
+	        </div>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/focus0_subgrid6-11.jpg" alt="focus0_subgrid6-11" style="width:100%">
+	            <figcaption>subgrid 6-11.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus0_subgrid8-9.jpg" alt="focus0_subgrid8-9" style="width:100%">
+	            <figcaption>subgrid 8-9, smallest aperture, just one image, practically sharp everywhere</figcaption>
+	          </div>
+	        </div>
+
+	        <p>We then add the shift to it to change focus</p>
+	        <h5>shift = 1, focus in the middle</h5>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/focus1_subgrid0-17.jpg" alt="focus1_subgrid0-17" style="width:100%">
+	            <figcaption>subgrid 0-17, largest aperture.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus1_subgrid2-15.jpg" alt="focus1_subgrid2-15" style="width:100%">
+	            <figcaption>subgrid 2-15, smaller aperture.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus1_subgrid4-13.jpg" alt="focus1_subgrid4-13" style="width:100%">
+	            <figcaption>subgrid 2-15, even smaller aperture.</figcaption>
+	          </div>
+	        </div>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/focus1_subgrid6-11.jpg" alt="focus1_subgrid6-11" style="width:100%">
+	            <figcaption>subgrid 6-11.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus1_subgrid8-9.jpg" alt="focus1_subgrid8-9" style="width:100%">
+	            <figcaption>subgrid 8-9, smallest aperture, just one image, practically sharp everywhere</figcaption>
+	          </div>
+	        </div>
+
+	        <h5>shift = 2, focus in the front</h5>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/focus2_subgrid0-17.jpg" alt="focus1_subgrid0-17" style="width:100%">
+	            <figcaption>subgrid 0-17, largest aperture.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus2_subgrid2-15.jpg" alt="focus1_subgrid2-15" style="width:100%">
+	            <figcaption>subgrid 2-15, smaller aperture.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus2_subgrid4-13.jpg" alt="focus1_subgrid4-13" style="width:100%">
+	            <figcaption>subgrid 2-15, even smaller aperture.</figcaption>
+	          </div>
+	        </div>
+	        <div class="row">
+	          <div class="column">
+	            <img src="input/focus2_subgrid6-11.jpg" alt="focus1_subgrid6-11" style="width:100%">
+	            <figcaption>subgrid 6-11.</figcaption>
+	          </div>
+	          <div class="column">
+	            <img src="input/focus2_subgrid8-9.jpg" alt="focus1_subgrid8-9" style="width:100%">
+	            <figcaption>subgrid 8-9, smallest aperture, just one image, practically sharp everywhere</figcaption>
+	          </div>
+	        </div>
+	    </div>
+
+	    <div class="part" id="p2_part3">
+	    	<h4>3) Bells & Whistles</h4>
+	    	<p>In this part, I implemented an interactive system where you can click on a part in the first image. The ginput will returen the position of the input point. we then crop a 100 pixel by 100 pixel square from the firsst and second image, and use ssd to find the best amount of shift for that spot to align with the second image. After getting this shift value, we can just multiply the shift by 2 for the third image, and so on, because of the regular grid structure. The result is demonstrated in the following demo.</p>
+	    	<iframe width="560" height="315" src="https://www.youtube.com/embed/nJPNGi8z9G8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+	    </div>
+
+	    <div class="part" id="p2_part4">
+	    	<h4>4) Summary and What I Learned</h4>
+	    	<p>I learned a lot about the Light Field in this project. I have already heard about it after taking professor Ren Ng's Graphics class last semester, but this project allowed me to actually look into the data and figure out how it works. It was very fun.</p>
+	    </div>
+
+      </div>
+      <!--End Project2-->
+    </div>
+    <!-- END CONTENT -->
+
+    <hr />
+
+    <footer>
+      <a href="#">Back to top</a>
+    </footer>
+  </body>
+
+</html>
